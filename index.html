@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Battle от Bang Bang Education</title>
+    <style>
+        /* Основные стили */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 0.5em;
+            color: #333;
+        }
+
+        #canvas {
+            display: grid;
+            grid-template-columns: repeat(240, 12px);
+            grid-template-rows: repeat(240, 12px);
+            gap: 1px;
+            border: 2px solid #333;
+            margin-top: 10px;
+        }
+
+        .pixel {
+            width: 12px;
+            height: 12px;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+
+        #color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .color-option {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            border: 2px solid #333;
+            border-radius: 50%;
+        }
+
+        .selected {
+            border-color: #000;
+        }
+
+        #message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Pixel Battle (Локальная версия)</h1>
+
+    <!-- Панель выбора цвета -->
+    <div id="color-picker">
+        <div class="color-option selected" data-color="#000000" style="background-color: #000000;"></div>
+        <div class="color-option" data-color="#ff0000" style="background-color: #ff0000;"></div>
+        <div class="color-option" data-color="#00ff00" style="background-color: #00ff00;"></div>
+        <div class="color-option" data-color="#0000ff" style="background-color: #0000ff;"></div>
+        <div class="color-option" data-color="#ffff00" style="background-color: #ffff00;"></div>
+        <div class="color-option" data-color="#ff00ff" style="background-color: #ff00ff;"></div>
+        <div class="color-option" data-color="#00ffff" style="background-color: #00ffff;"></div>
+    </div>
+
+    <!-- Полотно для рисования -->
+    <div id="canvas"></div>
+
+    <!-- Сообщение об ограничении на рисование -->
+    <p id="message"></p>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const colorPicker = document.getElementById('color-picker');
+        const messageElement = document.getElementById('message');
+        let selectedColor = '#000000'; // Цвет по умолчанию
+        let lastDrawTime = 0; // Время последнего рисования
+
+        // Создаем полотно размером 240x240
+        function createCanvas(size) {
+            for (let i = 0; i < size * size; i++) {
+                const pixel = document.createElement('div');
+                pixel.classList.add('pixel');
+                pixel.style.backgroundColor = '#ffffff';
+
+                // Событие клика для изменения цвета пикселя
+                pixel.addEventListener('click', () => {
+                    const currentTime = Date.now();
+                    // Ограничение: один пиксель в минуту
+                    if (currentTime - lastDrawTime >= 60000) {
+                        pixel.style.backgroundColor = selectedColor;
+                        lastDrawTime = currentTime;
+                    } else {
+                        messageElement.textContent = "Подождите минуту, чтобы снова рисовать";
+                        setTimeout(() => messageElement.textContent = "", 3000);
+                    }
+                });
+
+                canvas.appendChild(pixel);
+            }
+        }
+
+        // Заполняем полотно
+        createCanvas(50);
+
+        // Обрабатываем выбор цвета
+        colorPicker.addEventListener('click', (event) => {
+            if (event.target.classList.contains('color-option')) {
+                document.querySelectorAll('.color-option').forEach(option => option.classList.remove('selected'));
+                selectedColor = event.target.getAttribute('data-color');
+                event.target.classList.add('selected');
+            }
+        });
+    </script>
+
+</body>
+</html>

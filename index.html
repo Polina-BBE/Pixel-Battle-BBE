@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Battle от Bang Bang Education</title>
+    <link href="https://fonts.googleapis.com/css2?family=SuisseIntl-Regular&display=swap" rel="stylesheet">
     <style>
-        /* Основные стили */
         body {
+            font-family: 'SuisseIntl-Regular', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             margin: 0;
             height: 100vh;
@@ -24,16 +24,16 @@
 
         #canvas {
             display: grid;
-            grid-template-columns: repeat(240, 12px);
-            grid-template-rows: repeat(240, 12px);
+            grid-template-columns: repeat(240, 5px);
+            grid-template-rows: repeat(240, 5px);
             gap: 1px;
             border: 2px solid #333;
             margin-top: 10px;
         }
 
         .pixel {
-            width: 12px;
-            height: 12px;
+            width: 5px;
+            height: 5px;
             background-color: #ffffff;
             cursor: pointer;
         }
@@ -55,16 +55,11 @@
         .selected {
             border-color: #000;
         }
-
-        #message {
-            color: red;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
 
-    <h1>Pixel Battle (Локальная версия)</h1>
+    <h1>Pixel Battle от Bang Bang Education</h1>
 
     <!-- Панель выбора цвета -->
     <div id="color-picker">
@@ -80,45 +75,41 @@
     <!-- Полотно для рисования -->
     <div id="canvas"></div>
 
-    <!-- Сообщение об ограничении на рисование -->
-    <p id="message"></p>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script>
+        const socket = io('https://your-replit-server-url.repl.co'); // Укажите здесь URL сервера на Replit
+        
+        // Локальные переменные для холста и цвета
         const canvas = document.getElementById('canvas');
-        const colorPicker = document.getElementById('color-picker');
-        const messageElement = document.getElementById('message');
-        let selectedColor = '#000000'; // Цвет по умолчанию
-        let lastDrawTime = 0; // Время последнего рисования
+        let selectedColor = '#000000';
 
-        // Создаем полотно размером 240x240
         function createCanvas(size) {
             for (let i = 0; i < size * size; i++) {
                 const pixel = document.createElement('div');
                 pixel.classList.add('pixel');
                 pixel.style.backgroundColor = '#ffffff';
 
-                // Событие клика для изменения цвета пикселя
                 pixel.addEventListener('click', () => {
-                    const currentTime = Date.now();
-                    // Ограничение: один пиксель в минуту
-                    if (currentTime - lastDrawTime >= 60000) {
-                        pixel.style.backgroundColor = selectedColor;
-                        lastDrawTime = currentTime;
-                    } else {
-                        messageElement.textContent = "Подождите минуту, чтобы снова рисовать";
-                        setTimeout(() => messageElement.textContent = "", 3000);
-                    }
+                    socket.emit('draw', { index: i, color: selectedColor });
                 });
 
                 canvas.appendChild(pixel);
             }
         }
 
-        // Заполняем полотно
-        createCanvas(50);
+        socket.on('init', (canvasState) => {
+            createCanvas(240);
+            canvasState.forEach((color, i) => {
+                canvas.children[i].style.backgroundColor = color;
+            });
+        });
+
+        socket.on('draw', ({ index, color }) => {
+            canvas.children[index].style.backgroundColor = color;
+        });
 
         // Обрабатываем выбор цвета
-        colorPicker.addEventListener('click', (event) => {
+        document.getElementById('color-picker').addEventListener('click', (event) => {
             if (event.target.classList.contains('color-option')) {
                 document.querySelectorAll('.color-option').forEach(option => option.classList.remove('selected'));
                 selectedColor = event.target.getAttribute('data-color');
